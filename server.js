@@ -16,12 +16,20 @@ const manufactureSchema = require("./Schema/manufactureSchema.js")
 require('dotenv').config();
 
 const app = express();
+const cors = require("cors");
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://sih-frontend-lyart.vercel.app",
+    ],
+    methods: ["GET","POST","PUT","PATCH","DELETE"],
     credentials: true,
   })
 );
+
+app.options("*", cors()); // <– allow preflight
 app.use(express.json());
 
 // Block router
