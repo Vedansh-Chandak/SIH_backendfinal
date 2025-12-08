@@ -1,0 +1,66 @@
+// backend/schema/fullSupplyChainSchema.js
+const mongoose = require("mongoose");
+
+const manufactureSchemas = new mongoose.Schema({
+  // 🌿 Herb details
+  herbName: { type: String, required: true },
+  date: { type: Date, required: true },
+  quantity: { type: Number, required: true },
+
+  geoLocation: {
+    lat: { type: Number, required: true },
+    long: { type: Number, required: true }
+  },
+
+  // Herb location details
+  city: { type: String, required: true },
+  address: { type: String, required: true },
+  county: { type: String, required: true },
+  pincode: { type: String, required: true },
+
+  // Farmer reference
+  farmerId: { type: String },
+  farmerName: { type: String, required: true },
+
+  // QR-related fields
+  qrPayload: { type: String },
+  qrImage: { type: String },
+
+  // Transport-specific fields
+  transportCity: { type: String, required: true },
+  transportPincode: { type: String, required: true },
+  transportGeoLocation: {
+    lat: { type: Number, required: true },
+    long: { type: Number, required: true }
+  },
+  driverName: { type: String, required: true },
+  vehicleNumber: { type: String, required: true },
+  transportQuantity: { type: Number, required: true },
+
+  // Processing fields
+  processingUnitName: { type: String, required: true },
+  processes: [{ type: String }], // array of processes
+
+  // Lab processing fields
+  labName: { type: String, required: true },
+  qualityAssurance: { type: String },
+  certificates: [{ type: String }],
+  moistureContent: { type: Number },
+  purityLevel: { type: Number },
+  pesticideLevel: { type: Number },
+  activeCompoundLevel: { type: Number },
+
+  // 🔹 Supply chain stages
+  collected: { type: Boolean, default: false },
+  processed: { type: Boolean, default: false },
+  labVerified: { type: Boolean, default: false },
+  dispatched: { type: Boolean, default: false },
+   companyName: { type: String },
+   manufactureDate: { type: String },
+   productName:{type:String}
+});
+
+// Create model
+const manufactureSchema = mongoose.model("manufactureSchema", manufactureSchemas);
+
+module.exports = manufactureSchema;
