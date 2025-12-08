@@ -47,6 +47,17 @@ const blockchain = new Blockchain();
 app.get('/', (req, res) => {
     res.send('Herb backend is running');
 });
+app.get("/*", (req, res) => {
+  res.send("Not found");
+});
+
+app.get("/:path(*)", (req, res) => {
+  res.send("Not found");
+});
+
+app.get("/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // ========================== USER REGISTRATION ==========================
 app.post("/api/users/register", async (req, res) => {
