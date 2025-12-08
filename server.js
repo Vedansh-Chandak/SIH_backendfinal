@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-
+const cors = require('cors');
 const Blockchain = require('./blockchain');
 const { Herb, validateHerb } = require('./Schema/herbschema.js');
 const { User, validateUser } = require('./Schema/userSchema.js');
@@ -12,24 +12,30 @@ const LabProcessing = require("./Schema/labSchema.js");
 const manufactureSchema = require("./Schema/manufactureSchema.js")
 
 
-
 require('dotenv').config();
 
 const app = express();
-const cors = require("cors");
+const allowedOrigins = [
+  'http://localhost:5173',                 // Your local frontend
+  'https://sih-frontend-lyart.vercel.app',
+  "https://sih-frontend-railway.vercel.app"  // Your deployed frontend
+];
 
+// Configure CORS with the whitelist
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://sih-frontend-lyart.vercel.app",
-    ],
-    methods: ["GET","POST","PUT","PATCH","DELETE"],
-    credentials: true,
-  })
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
 );
-
-app.options("*", cors()); // <– allow preflight
 app.use(express.json());
 
 // Block router
@@ -46,17 +52,6 @@ const blockchain = new Blockchain();
 // Basic route
 app.get('/', (req, res) => {
     res.send('Herb backend is running');
-});
-app.get("/*", (req, res) => {
-  res.send("Not found");
-});
-
-app.get("/:path(*)", (req, res) => {
-  res.send("Not found");
-});
-
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // ========================== USER REGISTRATION ==========================
@@ -745,15 +740,11 @@ app.get('/api/blocks', (req, res) => {
     res.send(blockchain.chain);
 });
 
-
 app.use("/api", require("./Routes/ivrRoutes.js"));
-
 const farmerRoutes = require("./Routes/farmerRoutes.js");
 app.use("/api/farmer", farmerRoutes);
 
-//register number check
 app.use("/ivr", require("./Routes/ivr.js"));
-
 
 
 // Server listening
@@ -761,5 +752,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-
