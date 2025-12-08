@@ -12,6 +12,11 @@ const labProcessingSchema = new mongoose.Schema({
     lat: { type: Number, required: true },
     long: { type: Number, required: true }
   },
+  rating: {
+  type: String,
+  enum: ["1","2","3","4","5","6","7","8","9","10"],
+  required: true
+},
   city: { type: String, required: true },
   address: { type: String, required: true },
   county: { type: String, required: true },

@@ -6,25 +6,29 @@ exports.registerCrop = async (req, res) => {
     const { phoneNumber, crop, quantity } = req.body;
 
     if (!phoneNumber || !crop || !quantity)
-      return res.status(400).send("Missing IVR data");
+      return res.status(400).send({ status: "EXIT", error: "Missing IVR data" });
 
-    // 1️⃣ Check if user exists by phone number
     const user = await User.findOne({ phoneNumber });
+
     if (!user) {
-      return res.status(404).send({ error: "User not registered" });
+      return res.status(200).send({
+        status: "EXIT",
+        message: "User not registered"
+      });
     }
 
-    // 2️⃣ Save crop entry
     const data = new IvrCrop({ phoneNumber, crop, quantity });
     await data.save();
 
-    res.status(200).send({
-      message: "Crop registered via IVR successfully",
-      data
+    return res.status(200).send({
+      status: "OK",
+      message: "Crop saved",
+      id: data._id,
+      crop,
+      quantity
     });
 
   } catch (err) {
-    console.error("IVR DB error:", err);
-    res.status(500).send("Server error");
+    res.status(500).send({ status: "EXIT", error: "DB error" });
   }
 };
