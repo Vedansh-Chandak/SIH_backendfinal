@@ -729,7 +729,7 @@ app.get('/api/blocks', (req, res) => {
 
 app.use("/api", require("./Routes/ivrRoutes.js"));
 
-const farmerRoutes = require("../Backend/Routes/farmerRoutes.js");
+const farmerRoutes = require("./Routes/farmerRoutes.js");
 app.use("/api/farmer", farmerRoutes);
 
 //register number check
