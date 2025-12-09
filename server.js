@@ -739,14 +739,14 @@ app.get("/api/users/farmer/:id/blocks", (req, res) => {
 app.get('/api/blocks', (req, res) => {
     res.send(blockchain.chain);
 });
-
+// Crop registration API (POST /api/registerCrop)
 app.use("/api", require("./Routes/ivrRoutes.js"));
-const farmerRoutes = require("./Routes/farmerRoutes.js");
-app.use("/api/farmer", farmerRoutes);  
 
+// Farmer-related API (GET /api/farmer/check-number, /api/farmer/herbs)
+app.use("/api/farmer", require("./Routes/farmerRoutes.js"));
+
+// IVR call flow webhook (if you have voice menu)
 app.use("/ivr", require("./Routes/ivr.js"));
-
-
 // Server listening
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
