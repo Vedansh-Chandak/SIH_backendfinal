@@ -742,7 +742,7 @@ app.get('/api/blocks', (req, res) => {
 
 app.use("/api", require("./Routes/ivrRoutes.js"));
 const farmerRoutes = require("./Routes/farmerRoutes.js");
-app.use("/api/farmer", farmerRoutes);
+app.use("/api/farmer", farmerRoutes);  
 
 app.use("/ivr", require("./Routes/ivr.js"));
 
