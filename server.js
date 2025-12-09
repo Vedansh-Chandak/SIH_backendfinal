@@ -97,21 +97,108 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
-// ========================== ROLE-BASED DASHBOARDS ==========================
+// ========================== ROLE-BASED DASHBOARD ==========================
 app.get("/api/users/:role/:id/dashboard", async (req, res) => {
   const { role, id } = req.params;
 
   try {
+    // 1️⃣ FIND USER
     const user = await User.findById(id);
-    if (!user) return res.status(404).send({ message: "User not found" });
-
-    if (user.role !== role) {
-      return res.status(403).send({ message: `Access denied. Not a ${role}.` });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.send({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`, user });
+    if (user.role !== role) {
+      return res.status(403).json({ success: false, message: `Access denied. Not a ${role}.` });
+    }
+
+    let dashboardData = {};
+
+    // 2️⃣ ROLE BASED DATA FETCH (MongoDB only)
+
+    // -----------------------------------------
+    // 🧑‍🌾 FARMER DASHBOARD (Herbs + Transport)
+    // -----------------------------------------
+    if (role === "farmer") {
+      const herbs = await Herb.find({ farmer: id });
+      const transports = await HerbTransport.find({ farmerId: id });
+
+      dashboardData = {
+        user,
+        totalHerbs: herbs.length,
+        totalTransport: transports.length,
+        herbs,
+        transports,
+      };
+    }
+
+    // -----------------------------------------
+    // 🚚 TRANSPORTER DASHBOARD (All Transport Jobs)
+    // -----------------------------------------
+    if (role === "transporter") {
+      const transports = await HerbTransport.find({ driverName: user.name });
+
+      dashboardData = {
+        user,
+        totalTransportJobs: transports.length,
+        transports,
+      };
+    }
+
+    // -----------------------------------------
+    // 🧪 LAB DASHBOARD (Lab Test Data)
+    // -----------------------------------------
+    if (role === "lab") {
+      const labTests = await LabTests.find({ labId: id }); // if you have lab schema
+
+      dashboardData = {
+        user,
+        totalTests: labTests.length,
+        labTests,
+      };
+    }
+
+    // -----------------------------------------
+    // 🏭 PROCESSOR DASHBOARD (Processing Data)
+    // -----------------------------------------
+    if (role === "processor") {
+      const processing = await ProcessorData.find({ processorId: id }); // if available
+
+      dashboardData = {
+        user,
+        totalProcessed: processing.length,
+        processing,
+      };
+    }
+
+    // -----------------------------------------
+    // 🏭 MANUFACTURER DASHBOARD
+    // -----------------------------------------
+    if (role === "manufacturer") {
+      const manufacturing = await Manufacturing.find({ manufacturerId: id });
+
+      dashboardData = {
+        user,
+        totalBatches: manufacturing.length,
+        manufacturing,
+      };
+    }
+
+    // -----------------------------------------
+
+    return res.json({
+      success: true,
+      message: `${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`,
+      dashboard: dashboardData,
+    });
+
   } catch (err) {
-    res.status(500).send({ error: "Database error", details: err.message });
+    console.error("🔥 DASHBOARD ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Database error",
+      details: err.message,
+    });
   }
 });
 
