@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 
 // define the Mongoose schema
 const herbSchema = new mongoose.Schema({
-  herbName: { type: String, required: true },
-  date: { type: Date, required: true },
-  quantity: { type: Number, required: true },
+  herbName: { type: String},
+  date: { type: Date},
+  quantity: { type: Number},
 
   geoLocation: {
     lat: { type: Number },

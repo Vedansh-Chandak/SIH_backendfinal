@@ -62,11 +62,11 @@ const mongoose = require("mongoose");
 
 const HerbTransportSchema = new mongoose.Schema(
   {
-    cropId: { type: String, required: true },
+    cropId: { type: String},
 
-    herbName: { type: String, required: true },
+    herbName: { type: String},
     date: { type: Date, default: Date.now },
-    quantity: { type: Number, required: true },
+    quantity: { type: Number},
 
     geoLocation: {
       lat: { type: Number },
@@ -78,8 +78,8 @@ const HerbTransportSchema = new mongoose.Schema(
     county: { type: String },
     pincode: { type: String },
 
-    farmerId: { type: String, required: true },
-    farmerName: { type: String, required: true },
+    farmerId: { type: String},
+    farmerName: { type: String},
 
     qrPayload: String,
     qrImage: String,
@@ -92,8 +92,8 @@ const HerbTransportSchema = new mongoose.Schema(
       long: { type: Number }
     },
 
-    driverName: { type: String, required: true },
-    vehicleNumber: { type: String, required: true },
+    driverName: { type: String},
+    vehicleNumber: { type: String },
 
     transportQuantity: {
       type: Number,

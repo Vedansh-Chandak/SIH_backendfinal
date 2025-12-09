@@ -4,13 +4,13 @@ const mongoose = require("mongoose");
 // Define Schema
 const labProcessingSchema = new mongoose.Schema({
   // 🌿 Herb Details
-  herbName: { type: String, required: true },
-  date: { type: Date, required: true },
-  quantity: { type: Number, required: true },
+  herbName: { type: String},
+  date: { type: Date},
+  quantity: { type: Number},
 
   geoLocation: {
-    lat: { type: Number, required: true },
-    long: { type: Number, required: true }
+    lat: { type: Number },
+    long: { type: Number }
   },
   rating: {
   type: String,
@@ -34,27 +34,27 @@ const labProcessingSchema = new mongoose.Schema({
   transportCity: { type: String},
   transportPincode: { type: String },
   transportGeoLocation: {
-    lat: { type: Number, required: true },
-    long: { type: Number, required: true }
+    lat: { type: Number},
+    long: { type: Number }
   },
-  driverName: { type: String, required: true },
-  vehicleNumber: { type: String, required: true },
-  transportQuantity: { type: Number, required: true },
+  driverName: { type: String},
+  vehicleNumber: { type: String },
+  transportQuantity: { type: Number},
 
   // 🏭 Processing Info
-  processingUnitName: { type: String, required: true },
-  processes: [{ type: String, required: true }], // multiple processes
+  processingUnitName: { type: String},
+  processes: [{ type: String}], // multiple processes
 
   // 🔬 Lab & QA Info
-  labName: { type: String, required: true },
-  qualityAssurance: { type: String, required: true }, // e.g., "Passed", "Failed"
+  labName: { type: String},
+  qualityAssurance: { type: String}, // e.g., "Passed", "Failed"
   certificates: [{ type: String }], // multiple certificates
 
   // 🌿 Herb Testing Factors
-  moistureContent: { type: Number, required: true },        // %
-  purityLevel: { type: Number, required: true },           // %
-  pesticideLevel: { type: Number, required: true },         // e.g., "Safe", "Contaminated"
-  activeCompoundLevel: { type: Number, required: true }    // mg/g
+  moistureContent: { type: Number},        // %
+  purityLevel: { type: Number},           // %
+  pesticideLevel: { type: Number},         // e.g., "Safe", "Contaminated"
+  activeCompoundLevel: { type: Number}    // mg/g
 });
 
 // Create Model

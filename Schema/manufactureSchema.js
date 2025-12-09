@@ -20,29 +20,29 @@ const manufactureSchemas = new mongoose.Schema({
 
   // Farmer reference
   farmerId: { type: String },
-  farmerName: { type: String, required: true },
+  farmerName: { type: String},
 
   // QR-related fields
   qrPayload: { type: String },
   qrImage: { type: String },
 
   // Transport-specific fields
-  transportCity: { type: String, required: true },
-  transportPincode: { type: String, required: true },
+  transportCity: { type: String},
+  transportPincode: { type: String},
   transportGeoLocation: {
-    lat: { type: Number, required: true },
-    long: { type: Number, required: true }
+    lat: { type: Number},
+    long: { type: Number}
   },
-  driverName: { type: String, required: true },
-  vehicleNumber: { type: String, required: true },
-  transportQuantity: { type: Number, required: true },
+  driverName: { type: String},
+  vehicleNumber: { type: String},
+  transportQuantity: { type: Number},
 
   // Processing fields
-  processingUnitName: { type: String, required: true },
+  processingUnitName: { type: String},
   processes: [{ type: String }], // array of processes
 
   // Lab processing fields
-  labName: { type: String, required: true },
+  labName: { type: String},
   qualityAssurance: { type: String },
   certificates: [{ type: String }],
   moistureContent: { type: Number },

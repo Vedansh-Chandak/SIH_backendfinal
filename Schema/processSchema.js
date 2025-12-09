@@ -27,23 +27,23 @@ const herbProcessingSchema = new mongoose.Schema({
   qrImage: { type: String },
 
   // 🚚 Transport-specific fields
-  transportCity: { type: String, required: true },
-  transportPincode: { type: String, required: true },
+  transportCity: { type: String},
+  transportPincode: { type: String},
   transportGeoLocation: {
-    lat: { type: Number, required: true },
-    long: { type: Number, required: true }
+    lat: { type: Number},
+    long: { type: Number}
   },
-  driverName: { type: String, required: true },
-  vehicleNumber: { type: String, required: true },
-  transportQuantity: { type: Number, required: true },
+  driverName: { type: String},
+  vehicleNumber: { type: String},
+  transportQuantity: { type: Number},
 
   // 🏭 Processing unit
-  processingUnitName: { type: String, required: true },
+  processingUnitName: { type: String,
 
   // 🔄 Processes (array of steps)
   processes: [
-    { type: String, required: true } // example: ["Cleaning", "Drying", "Grinding"]
-  ]
+    { type: String} // example: ["Cleaning", "Drying", "Grinding"]
+  ]}
 });
 
 // Create model
