@@ -5,8 +5,10 @@ const Blockchain = require('./blockchain');
 const { Herb, validateHerb } = require('./Schema/herbschema.js');
 const { User, validateUser } = require('./Schema/userSchema.js');
 const blockRoutes = require("./Routes/blockroutes.js");
-const Block = require("./models/Block.js");
-const { HerbTransport, validateHerbTransport } = require("./Schema/transportSchema.js");
+// const Block = require("./models/Block.js");
+// const { HerbTransport, validateHerbTransport } = require("./Schema/transportSchema.js");
+const HerbTransport = require("./Schema/transportSchema.js");
+
 const { HerbProcessing } = require("./Schema/processSchema.js");
 const LabProcessing = require("./Schema/labSchema.js");
 const manufactureSchema = require("./Schema/manufactureSchema.js")
@@ -59,13 +61,13 @@ app.post("/api/users/register", async (req, res) => {
   const { error } = validateUser(req.body);
   if (error) return res.status(400).send(error);
 
-  const { name, age, region, phoneNumber, verificationId, role,  password, gender } = req.body;
+  const { name, age, region, phoneNumber, verificationId, role,  password, gender ,pincode} = req.body;
 
   try {
     const userExists = await User.findOne({ verificationId });
     if (userExists) return res.status(400).send("User already registered");
 
-    const user = new User({ name, age, region, phoneNumber, verificationId, role, password, gender });
+    const user = new User({ name, age, region, phoneNumber, verificationId, role, password, gender,pincode });
     await user.save();
 
     res.send({ message: `${role} registered successfully`, user });
@@ -146,56 +148,62 @@ app.post("/login", async (req, res) => {
 
 // ========================== HERB ROUTES ==========================
 app.post("/herbs", async (req, res) => {
-  const { herbName, date, quantity, geoLocation, farmerId, city, address, county, pincode, qrPayload, qrImage } = req.body;
-
-  // Validate herb input
-  if (!validateHerb(req.body)) {
-    return res.status(400).json({ success: false, error: "Invalid herb data" });
-  }
-
   try {
-    // Verify farmer exists and has role = farmer
-    const farmer = await User.findById(farmerId);
-    if (!farmer) return res.status(404).json({ success: false, error: "Farmer not found" });
-    if (farmer.role !== "farmer") return res.status(400).json({ success: false, error: "Only farmers can add herbs" });
-
-    // Add herb data to blockchain
-    const newBlock = blockchain.addBlock({
+    const {
       herbName,
       date,
       quantity,
       geoLocation,
+      farmerId,
       city,
       address,
       county,
       pincode,
       qrPayload,
-      qrImage,
-      farmerId
-    });
+      qrImage
+    } = req.body;
 
-    // Save herb in DB
+    // Validate herb input
+    const { error } = validateHerb(req.body);
+    if (error) {
+      return res.status(400).json({ success: false, error: error.details[0].message });
+    }
+
+    // Validate farmer
+    const farmer = await User.findById(farmerId);
+    if (!farmer) {
+      return res.status(404).json({ success: false, error: "Farmer not found" });
+    }
+
+    if (farmer.role !== "farmer") {
+      return res.status(400).json({ success: false, error: "Only farmers can add herbs" });
+    }
+
+    // SAVE HERB TO DATABASE
     const herb = new Herb({
       herbName,
       date,
       quantity,
       geoLocation,
+      farmer: farmerId,
       city,
       address,
       county,
       pincode,
       qrPayload,
-      qrImage,
-      farmer: farmerId
+      qrImage
     });
+
     const savedHerb = await herb.save();
 
-    // Save block in DB
-    const blockDoc = new Block(newBlock);
-    const savedBlock = await blockDoc.save();
+    res.json({
+      success: true,
+      message: "Herb registered successfully",
+      herb: savedHerb
+    });
 
-    res.json({ success: true, herb: savedHerb, block: savedBlock });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -224,52 +232,91 @@ app.get("/herbs/:id", async (req, res) => {
 // ========================== TRANSPORT ROUTE ==========================
 app.post("/transport", async (req, res) => {
   try {
-    const data = req.body;
+    const {
+      phoneNumber,
+      herbName,
+      transportQuantity,
+      driverName,
+      vehicleNumber,
+      transportCity,
+      transportPincode,
+      transportGeoLocation
+    } = req.body;
 
-    // ✅ Validate
-    if (!validateHerbTransport(data)) {
-      return res.status(400).json({ success: false, error: "Invalid transport data" });
+    // 1️⃣ Validate minimal input
+    if (!phoneNumber || !herbName || !transportQuantity || !driverName || !vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        error: "phoneNumber, herbName, transportQuantity, driverName, vehicleNumber are required"
+      });
     }
 
-    // ✅ Save Transport in MongoDB
-    const transportDoc = new HerbTransport(data);
+    // 2️⃣ Find farmer from phone number
+    const farmer = await User.findOne({ phoneNumber });
+
+    if (!farmer) {
+      return res.status(404).json({ success: false, error: "Farmer not found" });
+    }
+
+    if (farmer.role !== "farmer") {
+      return res.status(400).json({ success: false, error: "Only farmers can transport herbs" });
+    }
+
+    // 3️⃣ Find herb linked to farmer
+    const herb = await Herb.findOne({ herbName, farmer: farmer._id });
+
+    if (!herb) {
+      return res.status(404).json({
+        success: false,
+        error: "Herb not found for this farmer"
+      });
+    }
+
+    // 4️⃣ Validate transport quantity
+    if (transportQuantity > herb.quantity) {
+      return res.status(400).json({
+        success: false,
+        error: "Transport quantity cannot exceed registered quantity"
+      });
+    }
+
+    // 5️⃣ Create transport record
+    const transportDoc = new HerbTransport({
+      cropId: herb._id.toString(),        // 🔥 Correct crop ID
+      herbName: herb.herbName,
+      date: new Date(),
+      quantity: herb.quantity,            // registered qty
+      geoLocation: herb.geoLocation,
+      city: herb.city,
+      address: herb.address,
+      county: herb.county,
+      pincode: herb.pincode,              // 🔥 added pincode
+      farmerId: farmer._id.toString(),
+      farmerName: farmer.name,
+      qrPayload: null,
+      qrImage: null,
+      transportCity,
+      transportPincode,
+      transportGeoLocation,
+      driverName,
+      vehicleNumber,
+      transportQuantity
+    });
+
     const savedTransport = await transportDoc.save();
 
-    // ✅ Save in Blockchain
-    const blockData = {
-      transportId: savedTransport._id.toString(), // link to DB
-      herbName: savedTransport.herbName,
-      date: savedTransport.date,
-      quantity: savedTransport.quantity,
-      geoLocation: savedTransport.geoLocation,
-      city: savedTransport.city,
-      address: savedTransport.address,
-      county: savedTransport.county,
-      pincode: savedTransport.pincode,
-      farmerId: savedTransport.farmerId,
-      farmerName: savedTransport.farmerName,
-      transportCity: savedTransport.transportCity,
-      transportPincode: savedTransport.transportPincode,
-      transportGeoLocation: savedTransport.transportGeoLocation,
-      driverName: savedTransport.driverName,
-      vehicleNumber: savedTransport.vehicleNumber,
-      transportQuantity: savedTransport.transportQuantity
-    };
-
-    const newBlock = blockchain.addBlock(blockData);
-    const blockDoc = new Block(newBlock);
-    const savedBlock = await blockDoc.save();
-
-    res.status(201).json({
+    res.json({
       success: true,
-      transport: savedTransport,
-      block: savedBlock
+      message: "Transport registered successfully",
+      transport: savedTransport
     });
+
   } catch (err) {
     console.error("❌ Error saving transport:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 // ========================== PATCH Transport QR ==========================
 app.patch("/transport/:id", async (req, res) => {
@@ -740,13 +787,22 @@ app.get('/api/blocks', (req, res) => {
     res.send(blockchain.chain);
 });
 // Crop registration API (POST /api/registerCrop)
-app.use("/api", require("./Routes/ivrRoutes.js"));
+
 
 // Farmer-related API (GET /api/farmer/check-number, /api/farmer/herbs)
 app.use("/api/farmer", require("./Routes/farmerRoutes.js"));
 
-// IVR call flow webhook (if you have voice menu)
-app.use("/ivr", require("./Routes/ivr.js"));
+
+app.use("/api/farmer", require("./Routes/farmerRoutes.js"));
+
+
+
+
+//newwwwwwwwwwwwwwwwwwww
+app.use("/api", require("./Routes/UserRoutes.js"));
+app.use("/api", require("./Routes/herbRoutes"));
+
+
 // Server listening
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

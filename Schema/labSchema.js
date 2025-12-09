@@ -17,22 +17,22 @@ const labProcessingSchema = new mongoose.Schema({
   enum: ["1","2","3","4","5","6","7","8","9","10"],
   required: true
 },
-  city: { type: String, required: true },
-  address: { type: String, required: true },
-  county: { type: String, required: true },
-  pincode: { type: String, required: true },
+  city: { type: String },
+  address: { type: String},
+  county: { type: String },
+  pincode: { type: String},
 
   // Farmer Info
   farmerId: { type: String },
-  farmerName: { type: String, required: true },
+  farmerName: { type: String},
 
   // QR Info
   qrPayload: { type: String },
   qrImage: { type: String },
 
   // 🚚 Transport Info
-  transportCity: { type: String, required: true },
-  transportPincode: { type: String, required: true },
+  transportCity: { type: String},
+  transportPincode: { type: String },
   transportGeoLocation: {
     lat: { type: Number, required: true },
     long: { type: Number, required: true }

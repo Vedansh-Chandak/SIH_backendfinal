@@ -13,10 +13,10 @@ const herbProcessingSchema = new mongoose.Schema({
   },
 
   // Herb location details
-  city: { type: String, required: true },
-  address: { type: String, required: true },
-  county: { type: String, required: true },
-  pincode: { type: String, required: true },
+  city: { type: String},
+  address: { type: String},
+  county: { type: String},
+  pincode: { type: String},
 
   // Farmer reference
   farmerId: { type: String },

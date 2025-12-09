@@ -1,52 +1,53 @@
 const { User } = require("../Schema/userSchema.js");
-const IvrCrop = require("../Schema/ivrCropSchema.js");
+const { Herb } = require("../Schema/herbschema.js");
 
-/**
- * Register crop from IVR (expects JSON body with phoneNumber, crop, quantity)
- * Responds with status field (OK / EXIT) so IVR system can parse easily.
- */
 exports.registerCrop = async (req, res) => {
   try {
     const { phoneNumber, crop, quantity } = req.body;
 
-    // Validate
-    if (!phoneNumber || !crop || !quantity) {
-      return res.status(400).send({
-        status: "EXIT",
-        message: "Missing required IVR data (phoneNumber, crop, quantity)"
-      });
+    const farmer = await User.findOne({ phoneNumber, role: "farmer" });
+    if (!farmer) {
+      return res.status(404).json({ success: false, message: "Farmer not found" });
     }
 
-    // Check user registration
-    const user = await User.findOne({ phoneNumber });
+    // 1️⃣ Save Herb in Mongo
+    const herb = new Herb({
+      herbName: crop,
+      quantity,
+      date: new Date(),
+      farmer: farmer._id,
 
-    if (!user) {
-      return res.status(200).send({
-        status: "EXIT",
-        message: "User not registered with this number"
-      });
-    }
-
-    // Save crop data
-    const entry = await IvrCrop.create({
-      phoneNumber,
-      crop,
-      quantity
+      // optional fields
+      city: farmer.region || "N/A",
+      address: "N/A",
+      county: "N/A",
+      pincode: "N/A",
+      geoLocation: { lat: 0, long: 0 }
     });
 
-    return res.status(200).send({
-      status: "OK",
-      message: "Crop saved successfully",
-      id: entry._id,
-      crop: entry.crop,
-      quantity: entry.quantity
+    const savedHerb = await herb.save();
+
+    // 2️⃣ Save to Blockchain + Block DB so dashboard can see it
+    const newBlock = blockchain.addBlock({
+      farmerId: farmer._id.toString(),
+      herbId: savedHerb._id.toString(),
+      herbName: crop,
+      quantity,
+      date: savedHerb.date
     });
 
-  } catch (err) {
-    console.error("IVR registerCrop error:", err);
-    return res.status(500).send({
-      status: "EXIT",
-      message: "Internal server error"
+    const blockDoc = new Block(newBlock);
+    await blockDoc.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Crop registered successfully",
+      herb: savedHerb,
+      block: newBlock
     });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
+

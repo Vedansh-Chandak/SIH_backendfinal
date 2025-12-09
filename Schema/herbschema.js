@@ -8,15 +8,15 @@ const herbSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
 
   geoLocation: {
-    lat: { type: Number, required: true },
-    long: { type: Number, required: true }
+    lat: { type: Number },
+    long: { type: Number }
   },
 
   // 🆕 Location details
-  city: { type: String, required: true },
-  address: { type: String, required: true },
-  county: { type: String, required: true },
-  pincode: { type: String, required: true },
+  city: { type: String },
+  address: { type: String  },
+  county: { type: String },
+  pincode: { type: String},
 
   // Farmer reference
   farmer: { type: mongoose.Schema.Types.ObjectId, ref: 'Farmer', required: true },
